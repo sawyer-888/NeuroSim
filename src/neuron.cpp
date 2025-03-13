@@ -2,33 +2,33 @@
 #include "synapse.h"
 #include <iostream>
 #include <vector>
-#include <memory>
-#include <algorithm> // For std::min
+#include <algorithm>  // For std::min, std::for_each
+#include <utility>    // For std::exchange
+#include <execution>  // For parallel execution (future)
 
 Neuron::Neuron(int id) : id(id), activation(0.0) {
-    synapses.reserve(10); 
+    synapses.reserve(10);
 }
 
 void Neuron::receiveSignal(double signal) {
-    activation += signal;
-    activation = std::min(activation, 2.0); 
+    activation = std::min(activation + signal, 2.0); 
 }
 
 void Neuron::update() {
     if (activation <= 1.0) return; 
+
 #ifdef DEBUG
     std::cout << "Neuron " << id << " fired!\n";
 #endif
 
-    activation = 0.0;  
+    activation = std::exchange(activation, 0.0);
 
-    for (auto& synapse : synapses) {
-        synapse->propagate();
-    }
+    std::for_each(std::execution::par_unseq, synapses.begin(), synapses.end(), 
+                  [](Synapse* synapse) { synapse->propagate(); });
 }
 
-void Neuron::addSynapse(std::unique_ptr<Synapse> synapse) {
-    synapses.push_back(std::move(synapse));
+void Neuron::addSynapse(Synapse* synapse) {
+    synapses.push_back(synapse);  
 }
 
 double Neuron::getActivation() const {
@@ -36,5 +36,6 @@ double Neuron::getActivation() const {
 }
 
 void Neuron::optimizeMemory() {
-    synapses.shrink_to_fit();  
+    synapses.clear();       
+    synapses.shrink_to_fit(); 
 }
