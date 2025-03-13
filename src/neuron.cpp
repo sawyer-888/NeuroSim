@@ -6,22 +6,21 @@
 #include <algorithm> // For std::min
 
 Neuron::Neuron(int id) : id(id), activation(0.0) {
-    synapses.reserve(10); // ✅ Preallocate memory (can be adjusted)
+    synapses.reserve(10); 
 }
 
 void Neuron::receiveSignal(double signal) {
     activation += signal;
-    activation = std::min(activation, 2.0);  // ✅ Avoids unnecessary "if" check (caps activation)
+    activation = std::min(activation, 2.0); 
 }
 
 void Neuron::update() {
-    if (activation <= 1.0) return;  // ✅ Skip unnecessary processing
-
+    if (activation <= 1.0) return; 
 #ifdef DEBUG
     std::cout << "Neuron " << id << " fired!\n";
 #endif
 
-    activation = 0.0;  // ✅ Reset neuron activation
+    activation = 0.0;  
 
     for (auto& synapse : synapses) {
         synapse->propagate();
@@ -29,7 +28,7 @@ void Neuron::update() {
 }
 
 void Neuron::addSynapse(std::unique_ptr<Synapse> synapse) {
-    synapses.push_back(std::move(synapse));  // ✅ Moves ownership, avoids copy overhead
+    synapses.push_back(std::move(synapse));
 }
 
 double Neuron::getActivation() const {
@@ -37,5 +36,5 @@ double Neuron::getActivation() const {
 }
 
 void Neuron::optimizeMemory() {
-    synapses.shrink_to_fit();  // ✅ Reduce memory overhead after all synapses are added
+    synapses.shrink_to_fit();  
 }
